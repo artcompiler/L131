@@ -1,28 +1,33 @@
-/* Copyright (c) 2016, Art Compiler LLC */
+/* Copyright (c) 2017, Art Compiler LLC */
 /* @flow */
-
+var https = require('https');
+var http = require('http');
+var querystring = require("querystring");
 import {assert, message, messages, reserveCodeRange} from "./assert.js"
 reserveCodeRange(1000, 1999, "compile");
 messages[1001] = "Node ID %1 not found in pool.";
 messages[1002] = "Invalid tag in node with Node ID %1.";
 messages[1003] = "No async callback provided.";
 messages[1004] = "No visitor method defined for '%1'.";
-
+const LOCAL = true;
+function getGCHost() {
+  var port = global.port;
+  if (LOCAL && port === 5131) {
+    return "localhost";
+  } else {
+    return "www.graffiticode.com";
+  }
+}
+function getGCPort() {
+  var port = global.port;
+  if (LOCAL && port === 5131) {
+    return "3000";
+  } else {
+    return "443";
+  }
+}
 let transform = (function() {
   let table = [{
-    // v0
-    "PROG" : program,
-    "EXPRS" : exprs,
-    "STR": str,
-    "NUM": num,
-    "IDENT": ident,
-    "BOOL": bool,
-    "LIST": list,
-    "RECORD": record,
-    "BINDING": binding,
-    "ADD" : add,
-    "MUL" : mul,
-    "STYLE" : style,
   }, {
     // v1
     "PROG" : program,
@@ -45,13 +50,16 @@ let transform = (function() {
     "IN" : inData,
     "LAMBDA" : lambda,
     "PAREN" : paren,
-    "APPLY" : apply,
+    "SELECTALL" : selectAll,
+    "FIELDS" : fields,
+    "WHERE" : where,
+    "QUERY" : query,
     "MAP" : map,
   }];
   let nodePool;
   let version;
   function getVersion(pool) {
-    return pool.version ? +pool.version : 0;
+    return pool.version ? +pool.version : 1;
   }
   function transform(code, data, resume) {
     nodePool = code;
@@ -159,19 +167,100 @@ let transform = (function() {
       });
     });
   }
-  function apply(node, options, resume) {
-    // Apply a function to arguments.
+  function get(data, cc) {
+    var options = {
+      method: "GET",
+      host: getGCHost(),
+      port: getGCPort(),
+      path: "/items?" + querystring.stringify(data).trim().replace(/ /g, "+")
+    };
+    let protocol = LOCAL ? http : https;
+    console.log("get() options=" + JSON.stringify(options, null, 2));
+    var req = protocol.get(options, function(res) {
+      var data = "";
+      res.on('data', function (chunk) {
+        data += chunk;
+      }).on('end', function () {
+        try {
+          cc(JSON.parse(data));
+        } catch (e) {
+          console.log("parse error: " + data);
+        }
+      }).on("error", function () {
+        console.log("error() status=" + res.statusCode + " data=" + data);
+      });
+    });
+  }
+  function selectAll(node, options, resume) {
     visit(node.elts[1], options, function (err1, val1) {
-      // args
-      options.args = [val1];
       visit(node.elts[0], options, function (err0, val0) {
-        // fn
-        resume([].concat(err1).concat(err0), val0);
+        let val = fn(val0, val1, val1);
+        resume([].concat(err1).concat(err0), val);
+      });
+    });
+    function fn(n, v, r) {
+      let list = [];
+      try {
+        if (v instanceof Array) {
+          v.forEach((v) => {
+            list = list.concat(fn(n, v, v));
+          });
+        } else if (v && v[n] !== undefined) {
+          let o = {};
+          o[n] = v[n];
+          o._root = r;
+          list.push(o);
+        } else if (v !== null && typeof v === "object") {
+          Object.keys(v).forEach(k => {
+            list = list.concat(fn(n, v[k], r));
+          });
+        }
+      } catch (x) {
+        console.log(x.stack);
+      }
+      console.log("fn() list=" + JSON.stringify(list));
+      return list;
+    }
+  }
+  function fields(node, options, resume) {
+    visit(node.elts[1], options, function (err1, val1) {
+      visit(node.elts[0], options, function (err0, val0) {
+        val1.fields = val0;
+        resume([].concat(err1).concat(err0), val1);
+      });
+    });
+  }
+  function where(node, options, resume) {
+    visit(node.elts[0], options, function (err0, val0) {
+      resume(err0, {
+        where: val0
+      });
+    });
+  }
+  function query(node, options, resume) {
+    visit(node.elts[0], options, function (err0, val0) {
+      let query = {
+        where: val0.where ? val0.where : "label='show'",
+        fields: val0.fields ? val0.fields : ["obj"],
+        limit: val0.limit ? val0.limit : "100",
+      };
+      get(query, (rows) => {
+        let data = [];
+        rows.forEach((r) => {
+          try {
+            if (r.obj) {
+              r.obj = JSON.parse(r.obj);
+            }
+            data.push(r);
+          } catch (x) {
+            console.log("JSON parse error parsing: " + JSON.stringify(r.obj));
+          }
+        });
+        resume([], data);
       });
     });
   }
   function map(node, options, resume) {
-    // Apply a function to arguments.
     visit(node.elts[1], options, function (err1, val1) {
       // args
       let errs = [];
@@ -242,8 +331,7 @@ let transform = (function() {
       options = {};
     }
     visit(node.elts[0], options, function (err, val) {
-      // Return the value of the last expression.
-      resume(err, val.pop());
+      resume([].concat(err), val[val.length-1]);
     });
   }
   function key(node, options, resume) {
