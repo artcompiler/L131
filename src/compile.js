@@ -206,10 +206,11 @@ let transform = (function() {
             list = list.concat(fn(n, v, v));
           });
         } else if (v && v[n] !== undefined) {
-          let o = {};
-          o[n] = v[n];
-          o._root = r;
-          list.push(o);
+//          let o = {};
+//          o[n] = v[n];
+          //o._root = r;
+          r[n] = v[n];
+          list.push(r);
         } else if (v !== null && typeof v === "object") {
           Object.keys(v).forEach(k => {
             list = list.concat(fn(n, v[k], r));
