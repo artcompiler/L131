@@ -175,7 +175,6 @@ let transform = (function() {
       path: "/items?" + querystring.stringify(data).trim().replace(/ /g, "+")
     };
     let protocol = LOCAL ? http : https;
-    console.log("get() options=" + JSON.stringify(options, null, 2));
     var req = protocol.get(options, function(res) {
       var data = "";
       res.on('data', function (chunk) {
@@ -194,32 +193,42 @@ let transform = (function() {
   function selectAll(node, options, resume) {
     visit(node.elts[1], options, function (err1, val1) {
       visit(node.elts[0], options, function (err0, val0) {
-        let val = fn(val0, val1, val1);
+        let val = fn(val0, val1);
         resume([].concat(err1).concat(err0), val);
       });
     });
-    function fn(n, v, r) {
+    function fn(n, v, d) {
       let list = [];
       try {
         if (v instanceof Array) {
-          v.forEach((v) => {
-            list = list.concat(fn(n, v, v));
+          v.forEach((v, i) => {
+            list = list.concat(fn(n, v));
           });
-        } else if (v && v[n] !== undefined) {
-//          let o = {};
-//          o[n] = v[n];
-          //o._root = r;
-          r[n] = v[n];
-          list.push(r);
-        } else if (v !== null && typeof v === "object") {
-          Object.keys(v).forEach(k => {
-            list = list.concat(fn(n, v[k], r));
+        } else {
+          let nn = [].concat(n);
+          nn.forEach((n) => {
+            if (v && v[n] !== undefined) {
+              let d = {};
+              d[n] = v[n];
+              list.push(d);
+            }
+          })
+          if (typeof v === "object") {
+            // Traverse object children.
+            Object.keys(v).forEach(k => {
+              list = list.concat(fn(n, v[k]));
+            });
+          }
+          let obj = {};
+          list.forEach((o) => {
+            obj = Object.assign(obj, o);
           });
+          obj._data = d
+          list = [obj];
         }
       } catch (x) {
         console.log(x.stack);
       }
-      console.log("fn() list=" + JSON.stringify(list));
       return list;
     }
   }
