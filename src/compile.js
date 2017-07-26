@@ -9,10 +9,9 @@ messages[1001] = "Node ID %1 not found in pool.";
 messages[1002] = "Invalid tag in node with Node ID %1.";
 messages[1003] = "No async callback provided.";
 messages[1004] = "No visitor method defined for '%1'.";
-const LOCAL = true;
+const LOCAL = global.port === 5131;
 function getGCHost() {
-  var port = global.port;
-  if (LOCAL && port === 5131) {
+  if (LOCAL) {
     return "localhost";
   } else {
     return "www.graffiticode.com";
@@ -20,7 +19,7 @@ function getGCHost() {
 }
 function getGCPort() {
   var port = global.port;
-  if (LOCAL && port === 5131) {
+  if (LOCAL) {
     return "3000";
   } else {
     return "443";
