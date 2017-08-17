@@ -9,8 +9,8 @@ messages[1001] = "Node ID %1 not found in pool.";
 messages[1002] = "Invalid tag in node with Node ID %1.";
 messages[1003] = "No async callback provided.";
 messages[1004] = "No visitor method defined for '%1'.";
-const LOCAL = global.port === 5131;
 function getGCHost() {
+  const LOCAL = global.port === 5131;
   if (LOCAL) {
     return "localhost";
   } else {
@@ -18,7 +18,7 @@ function getGCHost() {
   }
 }
 function getGCPort() {
-  var port = global.port;
+  const LOCAL = global.port === 5131;
   if (LOCAL) {
     return "3000";
   } else {
@@ -70,6 +70,30 @@ let transform = (function() {
       str: str,
       nid: nid,
     };
+  }
+  function get(data, cc) {
+    var options = {
+      method: "GET",
+      host: getGCHost(),
+      port: getGCPort(),
+      path: "/items?" + querystring.stringify(data).trim().replace(/ /g, "+")
+    };
+    const LOCAL = global.port === 5131;
+    const protocol = LOCAL ? http : https;
+    var req = protocol.get(options, function(res) {
+      var data = "";
+      res.on('data', function (chunk) {
+        data += chunk;
+      }).on('end', function () {
+        try {
+          cc(JSON.parse(data));
+        } catch (e) {
+          console.log("parse error: " + data);
+        }
+      }).on("error", function () {
+        console.log("error() status=" + res.statusCode + " data=" + data);
+      });
+    });
   }
   function visit(nid, options, resume) {
     assert(typeof resume === "function", message(1003));
@@ -163,29 +187,6 @@ let transform = (function() {
     visit(node.elts[0], options, function (err1, val1) {
       visit(node.elts[1], options, function (err2, val2) {
         resume([].concat(err1).concat(err2), val2);
-      });
-    });
-  }
-  function get(data, cc) {
-    var options = {
-      method: "GET",
-      host: getGCHost(),
-      port: getGCPort(),
-      path: "/items?" + querystring.stringify(data).trim().replace(/ /g, "+")
-    };
-    let protocol = LOCAL ? http : https;
-    var req = protocol.get(options, function(res) {
-      var data = "";
-      res.on('data', function (chunk) {
-        data += chunk;
-      }).on('end', function () {
-        try {
-          cc(JSON.parse(data));
-        } catch (e) {
-          console.log("parse error: " + data);
-        }
-      }).on("error", function () {
-        console.log("error() status=" + res.statusCode + " data=" + data);
       });
     });
   }
