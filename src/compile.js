@@ -51,6 +51,7 @@ let transform = (function() {
     "PAREN" : paren,
     "SELECTALL" : selectAll,
     "FIELDS" : fields,
+    "LIMIT" : limit,
     "WHERE" : where,
     "QUERY" : query,
     "MAP" : map,
@@ -232,6 +233,14 @@ let transform = (function() {
       return list;
     }
   }
+  function limit(node, options, resume) {
+    visit(node.elts[1], options, function (err1, val1) {
+      visit(node.elts[0], options, function (err0, val0) {
+        val1.limit = val0;
+        resume([].concat(err1).concat(err0), val1);
+      });
+    });
+  }
   function fields(node, options, resume) {
     visit(node.elts[1], options, function (err1, val1) {
       visit(node.elts[0], options, function (err0, val0) {
@@ -252,7 +261,7 @@ let transform = (function() {
       let query = {
         where: val0.where ? val0.where : "label='show'",
         fields: val0.fields ? val0.fields : ["obj"],
-        limit: val0.limit ? val0.limit : "100",
+        limit: val0.limit ? val0.limit : "1000",
       };
       get(query, (rows) => {
         let data = [];

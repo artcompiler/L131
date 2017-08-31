@@ -10,6 +10,7 @@ window.gcexports.globalLexicon = {
     "map": { "tk": 1, "name": "MAP", "cls": "function", "length": 2 },
     "where": { "tk": 1, "name": "WHERE", "cls": "function", "length": 1 },
     "fields": { "tk": 1, "name": "FIELDS", "cls": "function", "length": 2 },
+    "limit": { "tk": 1, "name": "LIMIT", "cls": "function", "length": 2 },
     "selectAll": { "tk": 1, "name": "SELECTALL", "cls": "function", "length": 2 },
     "query": { "tk": 1, "name": "QUERY", "cls": "function", "length": 1 },
     "arg": { "tk": 1, "name": "ARG", "cls": "function", "length": 1 }
