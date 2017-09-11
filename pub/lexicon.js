@@ -13,5 +13,6 @@ window.gcexports.globalLexicon = {
     "limit": { "tk": 1, "name": "LIMIT", "cls": "function", "length": 2 },
     "selectAll": { "tk": 1, "name": "SELECTALL", "cls": "function", "length": 2 },
     "query": { "tk": 1, "name": "QUERY", "cls": "function", "length": 1 },
+    "data": { "tk": 1, "name": "DATA", "cls": "function", "length": 0 },
     "arg": { "tk": 1, "name": "ARG", "cls": "function", "length": 1 }
 }

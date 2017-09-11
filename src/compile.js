@@ -46,7 +46,7 @@ let transform = (function() {
     "STYLE" : styleV1,
     "CONCAT" : concat,
     "ARG" : arg,
-    "IN" : inData,
+    "DATA" : data,
     "LAMBDA" : lambda,
     "PAREN" : paren,
     "SELECTALL" : selectAll,
@@ -167,8 +167,8 @@ let transform = (function() {
       resume([], []);
     }
   }
-  function inData(node, options, resume) {
-    let data = options.data ? options.data : [];
+  function data(node, options, resume) {
+    let data = [].concat(options.data ? options.data : []);
     resume([], data);
   }
   function arg(node, options, resume) {
@@ -192,6 +192,7 @@ let transform = (function() {
     });
   }
   function selectAll(node, options, resume) {
+    // selectAll <fields> <objects>
     visit(node.elts[1], options, function (err1, val1) {
       visit(node.elts[0], options, function (err0, val0) {
         let val = fn(val0, val1);
