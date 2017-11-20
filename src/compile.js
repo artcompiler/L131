@@ -478,6 +478,7 @@ export let compiler = (function () {
             resume(err, val);
           } else {
             render(val, function (err, val) {
+              console.log("L131 found " + val.length + " items");
               resume(err, val);
             });
           }
