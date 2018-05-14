@@ -151,7 +151,7 @@ window.gcexports.viewer = function () {
       return React.createElement(
         "div",
         null,
-        React.createElement("link", { rel: "stylesheet", href: "https://l000.artcompiler.com/style.css" }),
+        React.createElement("link", { rel: "stylesheet", href: "https://l131.artcompiler.com/style.css" }),
         React.createElement("div", { id: "L131 chart", className: "chart-container" })
       );
     }

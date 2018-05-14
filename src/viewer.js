@@ -15,7 +15,7 @@ window.gcexports.viewer = (function () {
     render: function () {
       return (
         <div>
-          <link rel="stylesheet" href="https://l000.artcompiler.com/style.css" />
+          <link rel="stylesheet" href="https://l131.artcompiler.com/style.css" />
           <div id="L131 chart" className="chart-container">
           </div>
         </div>
