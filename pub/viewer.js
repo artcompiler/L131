@@ -148,7 +148,12 @@ window.gcexports.viewer = function () {
     componentDidMount: function componentDidMount() {},
     componentDidUpdate: function componentDidUpdate() {},
     render: function render() {
-      return React.createElement("div", { id: "chart", className: "chart-container" });
+      return React.createElement(
+        "div",
+        null,
+        React.createElement("link", { rel: "stylesheet", href: "https://l000.artcompiler.com/style.css" }),
+        React.createElement("div", { id: "L131 chart", className: "chart-container" })
+      );
     }
   });
   return {
