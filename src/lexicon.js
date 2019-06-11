@@ -14,5 +14,6 @@ window.gcexports.globalLexicon = {
     "selectAll": { "tk": 1, "name": "SELECTALL", "cls": "function", "length": 2 },
     "query": { "tk": 1, "name": "QUERY", "cls": "function", "length": 1 },
     "data": { "tk": 1, "name": "DATA", "cls": "function", "length": 0 },
-    "arg": { "tk": 1, "name": "ARG", "cls": "function", "length": 1 }
+    "arg": { "tk": 1, "name": "ARG", "cls": "function", "length": 1 },
+    "url": { "tk": 1, "name": "URL", "cls": "function", "length": 1 }
 }

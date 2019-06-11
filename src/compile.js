@@ -54,6 +54,7 @@ let transform = (function() {
     "LIMIT" : limit,
     "WHERE" : where,
     "QUERY" : query,
+    "URL" : url,
     "MAP" : map,
   }];
   let nodePool;
@@ -82,6 +83,22 @@ let transform = (function() {
     const LOCAL = global.port === 5131;
     const protocol = LOCAL ? http : https;
     var req = protocol.get(options, function(res) {
+      var data = "";
+      res.on('data', function (chunk) {
+        data += chunk;
+      }).on('end', function () {
+        try {
+          cc(JSON.parse(data));
+        } catch (e) {
+          console.log("parse error: " + data);
+        }
+      }).on("error", function () {
+        console.log("error() status=" + res.statusCode + " data=" + data);
+      });
+    });
+  }
+  function getURL(url, cc) {
+    let req = https.get(url, function(res) {
       var data = "";
       res.on('data', function (chunk) {
         data += chunk;
@@ -261,7 +278,7 @@ let transform = (function() {
     visit(node.elts[0], options, function (err0, val0) {
       let query = {
         where: val0.where ? val0.where : "label='show'",
-        fields: val0.fields ? val0.fields : ["obj"],
+        fields: val0.fields ? val0.fields : ["id"],
         limit: val0.limit ? val0.limit : "1000",
       };
       get(query, (rows) => {
@@ -276,6 +293,14 @@ let transform = (function() {
             console.log("JSON parse error parsing: " + JSON.stringify(r.obj));
           }
         });
+        console.log("L131 query found " + data.length + " items");
+        resume([], data);
+      });
+    });
+  }
+  function url(node, options, resume) {
+    visit(node.elts[0], options, function (err0, val0) {
+      getURL(val0, (data) => {
         resume([], data);
       });
     });
@@ -478,7 +503,6 @@ export let compiler = (function () {
             resume(err, val);
           } else {
             render(val, function (err, val) {
-              console.log("L131 found " + val.length + " items");
               resume(err, val);
             });
           }
