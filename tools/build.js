@@ -38,7 +38,7 @@ function clean() {
 
 function compile() {
   console.log("Compiling...");
-  exec("npx babel-cli src --out-dir lib");
+  exec("npx babel src --out-dir lib");
 }
 
 function bundle(debug) {
